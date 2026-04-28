@@ -141,6 +141,33 @@
 .navbar__hamburger.open::before { transform: rotate(45deg); top: 0; }
 .navbar__hamburger.open::after { transform: rotate(-45deg); bottom: 0; }
 
+/* Auth */
+.navbar__auth {
+  display: flex;
+  align-items: center;
+}
+
+.navbar__user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar__user-name {
+  color: rgba(235, 235, 235, 0.7);
+  font-size: 0.75rem;
+}
+
+.navbar__login-btn {
+  font-size: 0.8125rem;
+  padding: 0.6rem 1.4rem;
+}
+
+.navbar__logout-btn {
+  font-size: 0.75rem;
+  padding: 0.5rem 1rem;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .navbar__mobile-toggle {
