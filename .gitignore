@@ -10,3 +10,5 @@ config/config.yaml
 venv/
 .idea/
 .vscode/
+
+.vercel

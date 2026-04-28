@@ -1,0 +1,75 @@
+.background-glow-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none; /* THIS is critical — allows clicks to pass through */
+  z-index: 0;
+}
+
+.morphing-glow {
+  position: absolute;
+  width: 384px;
+  height: 384px;
+  border-radius: 50%;
+  filter: blur(100px);
+  -webkit-filter: blur(100px);
+  opacity: 0.6;
+}
+
+.glow-1 {
+  top: 20%;
+  left: 30%;
+  background: rgba(16, 185, 129, 0.08);
+  animation: morph1 8s ease-in-out infinite alternate;
+}
+
+.glow-2 {
+  bottom: 30%;
+  right: 20%;
+  width: 280px;
+  height: 280px;
+  background: rgba(16, 185, 129, 0.05);
+  animation: morph2 10s ease-in-out infinite alternate;
+}
+
+.glow-3 {
+  top: 60%;
+  left: 10%;
+  width: 200px;
+  height: 200px;
+  background: rgba(16, 185, 129, 0.04);
+  animation: morph1 12s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes morph1 {
+  0% {
+    border-radius: 40% 60% 60% 40% / 70% 30% 70% 30%;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    border-radius: 50% 50% 40% 60% / 40% 60% 50% 50%;
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  100% {
+    border-radius: 60% 40% 40% 60% / 30% 70% 30% 70%;
+    transform: translate(-20px, 30px) scale(0.95);
+  }
+}
+
+@keyframes morph2 {
+  0% {
+    border-radius: 60% 40% 40% 60% / 30% 70% 30% 70%;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    border-radius: 40% 60% 50% 50% / 60% 40% 60% 40%;
+    transform: translate(-40px, 20px) scale(1.1);
+  }
+  100% {
+    border-radius: 40% 60% 60% 40% / 70% 30% 70% 30%;
+    transform: translate(20px, -30px) scale(0.9);
+  }
+}

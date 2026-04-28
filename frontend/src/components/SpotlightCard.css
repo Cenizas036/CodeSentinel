@@ -1,0 +1,102 @@
+.spotlight-card {
+  position: relative;
+  border-radius: var(--radius-3xl);
+  padding: 1px; /* The 1px "border" space for shimmer */
+  opacity: 0;
+  transform: translateY(40px);
+  animation: spotlight-reveal 0.8s var(--anim-curve) forwards;
+  cursor: default;
+}
+
+@keyframes spotlight-reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Shimmer border — gradient moving behind the card */
+.spotlight-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(16, 185, 129, 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-move 4s linear infinite;
+  z-index: 0;
+}
+
+@keyframes shimmer-move {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Spotlight cursor glow */
+.spotlight-card__glow {
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(var(--radius-3xl) - 1px);
+  pointer-events: none;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(16, 185, 129, 0.12),
+    transparent 40%
+  );
+  transition: opacity 0.4s ease;
+  z-index: 2;
+}
+
+/* Inner card body — sits on top of shimmer, has the actual dark bg */
+.spotlight-card__inner {
+  position: relative;
+  z-index: 1;
+  background: var(--primary-black);
+  border-radius: calc(var(--radius-3xl) - 1px);
+  padding: 2.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Icon */
+.spotlight-card__icon {
+  width: 52px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-2xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  color: var(--text-white);
+  transition: all 0.5s var(--anim-curve);
+}
+
+.spotlight-card__icon--active {
+  transform: rotate(12deg) scale(1.1);
+  color: var(--accent-emerald);
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+/* Text */
+.spotlight-card__title {
+  font-size: 1.4rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-white);
+  font-weight: 400;
+}
+
+.spotlight-card__desc {
+  color: rgba(235, 235, 235, 0.4);
+  line-height: 1.65;
+  font-size: 0.9375rem;
+  font-family: var(--font-sans);
+}

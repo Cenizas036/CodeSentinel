@@ -1,0 +1,186 @@
+"""
+Quality Scorer — Calculates code quality metrics.
+"""
+
+import ast
+import re
+import math
+import logging
+
+logger = logging.getLogger("CodeSentinel.Quality")
+
+
+class QualityScorer:
+    """Calculates comprehensive code quality metrics."""
+
+    def score(self, code: str, language: str) -> dict:
+        """Calculate quality metrics for code."""
+        metrics = {
+            "lines_of_code": self._count_loc(code),
+            "comment_ratio": self._comment_ratio(code),
+            "duplication_score": self._detect_duplication(code),
+            "naming_quality": self._check_naming(code, language),
+        }
+
+        if language == "python":
+            metrics.update(self._python_metrics(code))
+
+        # Overall score (0-100)
+        metrics["overall_score"] = self._calculate_overall(metrics)
+        metrics["grade"] = self._grade(metrics["overall_score"])
+
+        return metrics
+
+    def _count_loc(self, code: str) -> dict:
+        lines = code.split("\n")
+        total = len(lines)
+        blank = sum(1 for l in lines if not l.strip())
+        comments = sum(1 for l in lines if l.strip().startswith(("#", "//", "/*", "*")))
+        return {"total": total, "blank": blank, "comments": comments, "code": total - blank - comments}
+
+    def _comment_ratio(self, code: str) -> float:
+        loc = self._count_loc(code)
+        if loc["code"] == 0:
+            return 0.0
+        return round(loc["comments"] / loc["code"], 3)
+
+    def _detect_duplication(self, code: str) -> dict:
+        lines = [l.strip() for l in code.split("\n") if l.strip() and not l.strip().startswith(("#", "//"))]
+        total = len(lines)
+        if total == 0:
+            return {"duplicate_lines": 0, "duplication_percentage": 0.0}
+
+        seen = {}
+        duplicates = 0
+        for line in lines:
+            if len(line) > 10:
+                seen[line] = seen.get(line, 0) + 1
+
+        duplicates = sum(count - 1 for count in seen.values() if count > 1)
+        return {
+            "duplicate_lines": duplicates,
+            "duplication_percentage": round(duplicates / total * 100, 1),
+        }
+
+    def _check_naming(self, code: str, language: str) -> dict:
+        """Evaluate naming conventions."""
+        issues = 0
+        total_names = 0
+
+        if language == "python":
+            try:
+                tree = ast.parse(code)
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.FunctionDef):
+                        total_names += 1
+                        if not re.match(r'^[a-z_][a-z0-9_]*$', node.name) and node.name != "__init__":
+                            issues += 1
+                    elif isinstance(node, ast.ClassDef):
+                        total_names += 1
+                        if not re.match(r'^[A-Z][a-zA-Z0-9]*$', node.name):
+                            issues += 1
+                    elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+                        total_names += 1
+                        if node.id.isupper() and len(node.id) > 1:
+                            continue  # Constants
+                        if not re.match(r'^[a-z_][a-z0-9_]*$', node.id) and not node.id.startswith("_"):
+                            issues += 1
+            except SyntaxError:
+                pass
+
+        conformance = 1.0 - (issues / max(total_names, 1))
+        return {"naming_conformance": round(conformance, 3), "naming_issues": issues}
+
+    def _python_metrics(self, code: str) -> dict:
+        """Python-specific metrics."""
+        try:
+            tree = ast.parse(code)
+        except SyntaxError:
+            return {}
+
+        functions = [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
+        classes = [n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]
+
+        avg_complexity = 0
+        if functions:
+            complexities = [self._cyclomatic(f) for f in functions]
+            avg_complexity = sum(complexities) / len(complexities)
+
+        # Halstead metrics approximation
+        operators = sum(1 for n in ast.walk(tree) if isinstance(n, (ast.BinOp, ast.UnaryOp, ast.BoolOp, ast.Compare)))
+        operands = sum(1 for n in ast.walk(tree) if isinstance(n, (ast.Name, ast.Constant)))
+
+        # Maintainability Index (simplified)
+        loc = self._count_loc(code)["code"]
+        if loc > 0 and avg_complexity > 0:
+            mi = max(0, (171 - 5.2 * math.log(max(operators + operands, 1))
+                         - 0.23 * avg_complexity
+                         - 16.2 * math.log(max(loc, 1))) * 100 / 171)
+        else:
+            mi = 100.0
+
+        return {
+            "function_count": len(functions),
+            "class_count": len(classes),
+            "avg_cyclomatic_complexity": round(avg_complexity, 2),
+            "maintainability_index": round(mi, 1),
+            "operator_count": operators,
+            "operand_count": operands,
+        }
+
+    def _cyclomatic(self, node: ast.AST) -> int:
+        complexity = 1
+        for child in ast.walk(node):
+            if isinstance(child, (ast.If, ast.For, ast.While, ast.ExceptHandler, ast.With, ast.Assert)):
+                complexity += 1
+            elif isinstance(child, ast.BoolOp):
+                complexity += len(child.values) - 1
+        return complexity
+
+    def _calculate_overall(self, metrics: dict) -> float:
+        """Calculate overall quality score (0-100)."""
+        score = 100.0
+
+        # Deduct for low comment ratio
+        comment_ratio = metrics.get("comment_ratio", 0)
+        if comment_ratio < 0.1:
+            score -= 15
+        elif comment_ratio < 0.05:
+            score -= 25
+
+        # Deduct for duplication
+        dup = metrics.get("duplication_score", {}).get("duplication_percentage", 0)
+        if dup > 20:
+            score -= 20
+        elif dup > 10:
+            score -= 10
+
+        # Deduct for naming issues
+        naming = metrics.get("naming_quality", {}).get("naming_conformance", 1.0)
+        score -= (1 - naming) * 20
+
+        # Deduct for high complexity
+        complexity = metrics.get("avg_cyclomatic_complexity", 0)
+        if complexity > 15:
+            score -= 25
+        elif complexity > 10:
+            score -= 15
+        elif complexity > 5:
+            score -= 5
+
+        # Boost for good maintainability
+        mi = metrics.get("maintainability_index", 100)
+        if mi > 80:
+            score = min(100, score + 5)
+        elif mi < 40:
+            score -= 15
+
+        return max(0, min(100, round(score, 1)))
+
+    @staticmethod
+    def _grade(score: float) -> str:
+        if score >= 90: return "A"
+        if score >= 80: return "B"
+        if score >= 70: return "C"
+        if score >= 60: return "D"
+        return "F"
