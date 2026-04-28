@@ -328,6 +328,55 @@ class UserService {
     }
 }
 `,
+  html: `<!-- index.html — HTML Sample with Issues -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My App</title>
+    <!-- SECURITY: Loading script over HTTP -->
+    <script src="http://example.com/insecure.js"></script>
+</head>
+<body>
+    <h1>Welcome</h1>
+    
+    <!-- Inline event handler (XSS risk) -->
+    <button onclick="eval(userInput)">Click Me</button>
+    
+    <!-- Deprecated tags -->
+    <center>
+        <font color="red">Warning: Invalid input</font>
+    </center>
+    
+    <!-- iframe without sandbox -->
+    <iframe src="https://untrusted.com/widget"></iframe>
+</body>
+</html>
+`,
+  css: `/* styles.css — CSS Sample with Issues */
+
+/* Performance: using @import inside CSS is slow */
+@import url("http://example.com/fonts.css");
+
+/* Overusing !important */
+.button {
+    color: #fff !important;
+    background-color: red !important;
+}
+
+/* Inefficient selector (too broad) */
+* {
+    margin: 0;
+}
+div span a {
+    text-decoration: none;
+}
+
+/* Hardcoded, inaccessible color contrast */
+.text-light {
+    color: #ccc;
+    background: #ddd;
+}
+`
 };
 
 const SEVERITY_CONFIG = {
@@ -348,6 +397,8 @@ const LANGUAGES = [
   { value: 'python', label: 'Python', monaco: 'python' },
   { value: 'javascript', label: 'JavaScript', monaco: 'javascript' },
   { value: 'typescript', label: 'TypeScript', monaco: 'typescript' },
+  { value: 'html', label: 'HTML', monaco: 'html' },
+  { value: 'css', label: 'CSS', monaco: 'css' },
   { value: 'java', label: 'Java', monaco: 'java' },
   { value: 'c', label: 'C', monaco: 'c' },
   { value: 'cpp', label: 'C++', monaco: 'cpp' },
@@ -452,7 +503,7 @@ const Analyzer = () => {
           <span className="tech-label text-emerald">Live IDE + Analysis Engine</span>
           <h2 className="analyzer__title font-serif">CodeSentinel IDE</h2>
           <p className="analyzer__subtitle text-muted">
-            Write or paste code, analyze for vulnerabilities, and <strong>optimize with one click</strong>. Supports <strong>13 languages</strong>.
+            Write or paste code, analyze for vulnerabilities, and <strong>optimize with one click</strong>. Supports <strong>15 languages</strong>.
           </p>
         </div>
 

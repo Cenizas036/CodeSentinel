@@ -24,6 +24,8 @@ COMMENT_PATTERNS = {
     "php": {"line": ["//", "#"], "block_start": "/*", "block_end": "*/"},
     "swift": {"line": ["//"], "block_start": "/*", "block_end": "*/"},
     "kotlin": {"line": ["//"], "block_start": "/*", "block_end": "*/"},
+    "html": {"line": ["<!--"], "block_start": "<!--", "block_end": "-->"},
+    "css": {"line": ["/*"], "block_start": "/*", "block_end": "*/"},
 }
 
 # Function/method definition patterns per language

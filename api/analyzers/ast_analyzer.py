@@ -115,6 +115,15 @@ class ASTAnalyzer:
             "ProcessBuilder": "Command injection risk",
             "createStatement": "SQL injection risk — use PreparedStatement",
         },
+        "html": {
+            "http://": "Insecure HTTP usage — upgrade to HTTPS",
+            "eval(": "Inline script execution — move JS to separate files and avoid eval()",
+            "document.write": "XSS risk and performance issue — use modern DOM APIs",
+        },
+        "css": {
+            "@import": "CSS @import blocks parallel downloads — use <link> tags instead",
+            "expression(": "CSS expressions are deprecated and a potential XSS vector",
+        },
     }
 
     # Language-specific secret variable patterns
@@ -447,6 +456,31 @@ class ASTAnalyzer:
                 if 'puts ' in s or s == 'puts':
                     issues.append({"type": "puts_debug", "severity": "info", "line": i,
                                    "message": "`puts` — use a logger for production code", "category": "quality"})
+
+        # HTML checks
+        if lang == "html":
+            for i, line in enumerate(lines, 1):
+                s = line.strip()
+                if re.search(r'<(center|font|marquee|blink|frameset|frame)\b', s, re.IGNORECASE):
+                    issues.append({"type": "deprecated_html", "severity": "medium", "line": i,
+                                   "message": "Deprecated HTML tag — use CSS instead", "category": "quality"})
+                if re.search(r'\bon(click|load|mouseover|submit)\s*=', s, re.IGNORECASE):
+                    issues.append({"type": "inline_event", "severity": "low", "line": i,
+                                   "message": "Inline event handler — use addEventListener in a JS file", "category": "quality"})
+                if '<iframe' in s and 'sandbox' not in s:
+                    issues.append({"type": "unsafe_iframe", "severity": "medium", "line": i,
+                                   "message": "iframe without sandbox attribute — security risk", "category": "security"})
+
+        # CSS checks
+        if lang == "css":
+            for i, line in enumerate(lines, 1):
+                s = line.strip()
+                if '!important' in s:
+                    issues.append({"type": "css_important", "severity": "low", "line": i,
+                                   "message": "Overuse of !important can make CSS hard to maintain", "category": "quality"})
+                if re.search(r'^\s*\*\s*\{', line):
+                    issues.append({"type": "universal_selector", "severity": "info", "line": i,
+                                   "message": "Universal selector (*) can cause performance issues if overused", "category": "performance"})
 
         return issues
 

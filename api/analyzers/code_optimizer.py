@@ -375,6 +375,70 @@ class CodeOptimizer:
                     })
                     modified = True
 
+            # HTML optimizations
+            if lang == "html":
+                if not modified and 'http://' in stripped and 'src=' in stripped:
+                    new_line = line.replace('http://', 'https://')
+                    new_lines.append(new_line)
+                    optimizations.append({
+                        "line": i + 1, "type": "security",
+                        "original": stripped,
+                        "optimized": new_line.strip(),
+                        "reason": "Insecure HTTP resource loading — replaced with HTTPS"
+                    })
+                    modified = True
+
+                if not modified and 'onclick="eval(' in stripped:
+                    new_line = indent + '<!-- SECURITY: Removed inline eval -->\n' + indent + '<button>Click Me</button>'
+                    new_lines.append(new_line)
+                    optimizations.append({
+                        "line": i + 1, "type": "security",
+                        "original": stripped,
+                        "optimized": '<button>Click Me</button>',
+                        "reason": "Inline `eval()` is a massive XSS vulnerability — removed inline handler"
+                    })
+                    modified = True
+
+                if not modified and '<center>' in stripped:
+                    new_line = line.replace('<center>', '<div style="text-align: center;">')
+                    new_lines.append(new_line)
+                    optimizations.append({
+                        "line": i + 1, "type": "quality",
+                        "original": stripped,
+                        "optimized": new_line.strip(),
+                        "reason": "`<center>` is deprecated — replaced with CSS text-align"
+                    })
+                    modified = True
+                    
+                if not modified and '</center>' in stripped:
+                    new_line = line.replace('</center>', '</div>')
+                    new_lines.append(new_line)
+                    modified = True # Part of center optimization, don't emit new optimization block to keep it clean
+
+            # CSS optimizations
+            if lang == "css":
+                if not modified and '@import' in stripped:
+                    new_line = indent + '/* PERFORMANCE: Use <link rel="stylesheet"> in HTML instead of @import */\n' + indent + '/* ' + stripped + ' */'
+                    new_lines.append(new_line)
+                    optimizations.append({
+                        "line": i + 1, "type": "performance",
+                        "original": stripped,
+                        "optimized": '/* ' + stripped + ' */',
+                        "reason": "`@import` blocks parallel downloads — comment out and use `<link>` tag in HTML"
+                    })
+                    modified = True
+
+                if not modified and '!important' in stripped:
+                    new_line = line.replace(' !important', '')
+                    new_lines.append(new_line)
+                    optimizations.append({
+                        "line": i + 1, "type": "quality",
+                        "original": stripped,
+                        "optimized": new_line.strip(),
+                        "reason": "Overusing `!important` makes CSS unmaintainable — removed it to enforce proper specificity"
+                    })
+                    modified = True
+
             if not modified:
                 new_lines.append(line)
 
