@@ -11,7 +11,6 @@ import {
 } from "firebase/auth";
 
 // Your web app's Firebase configuration
-// These should be populated in frontend/.env.local by the user
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -21,24 +20,36 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+// Gracefully handle missing/invalid Firebase config
+let app = null;
+let auth = null;
+let googleProvider = null;
+let firebaseReady = false;
 
-// Setup Google Provider and request Drive scopes
-const googleProvider = new GoogleAuthProvider();
-googleProvider.addScope('https://www.googleapis.com/auth/drive.file');
+try {
+  if (firebaseConfig.apiKey && firebaseConfig.apiKey !== 'undefined') {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    googleProvider = new GoogleAuthProvider();
+    googleProvider.addScope('https://www.googleapis.com/auth/drive.file');
+    firebaseReady = true;
+  } else {
+    console.warn('Firebase config not found. Auth features disabled.');
+  }
+} catch (err) {
+  console.warn('Firebase initialization failed:', err.message);
+}
+
+export { auth, firebaseReady };
 
 export const loginWithGoogle = async () => {
+  if (!firebaseReady) throw new Error('Firebase is not configured. Please add your API keys.');
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    // This gives you a Google Access Token. You can use it to access the Google API.
     const credential = GoogleAuthProvider.credentialFromResult(result);
     const token = credential.accessToken;
-    // The signed-in user info.
     const user = result.user;
     
-    // Store the OAuth token locally for the Drive API to use
     if (token) {
       localStorage.setItem('googleOAuthToken', token);
     }
@@ -50,6 +61,7 @@ export const loginWithGoogle = async () => {
 };
 
 export const loginWithEmail = async (email, password) => {
+  if (!firebaseReady) throw new Error('Firebase is not configured.');
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
     if (!result.user.emailVerified) {
@@ -62,10 +74,10 @@ export const loginWithEmail = async (email, password) => {
 };
 
 export const registerWithEmail = async (email, password) => {
+  if (!firebaseReady) throw new Error('Firebase is not configured.');
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     await sendEmailVerification(result.user);
-    // We sign them out immediately so they have to verify first
     await signOut(auth);
     return result.user;
   } catch (error) {
@@ -75,9 +87,14 @@ export const registerWithEmail = async (email, password) => {
 
 export const logout = async () => {
   localStorage.removeItem('googleOAuthToken');
-  return signOut(auth);
+  if (auth) return signOut(auth);
 };
 
 export const subscribeToAuthChanges = (callback) => {
+  if (!auth) {
+    // No Firebase — immediately call back with null user so app still renders
+    callback(null);
+    return () => {};
+  }
   return onAuthStateChanged(auth, callback);
 };
