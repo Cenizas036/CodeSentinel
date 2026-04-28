@@ -1,5 +1,6 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
+import { listFiles, readFile, saveFile, createFile } from '../services/drive';
 import './Analyzer.css';
 
 const SAMPLE_CODES = {
@@ -411,22 +412,105 @@ const LANGUAGES = [
   { value: 'kotlin', label: 'Kotlin', monaco: 'kotlin' },
 ];
 
-const Analyzer = () => {
+const Analyzer = ({ user, onLoginClick }) => {
   const [language, setLanguage] = useState('python');
   const [code, setCode] = useState(SAMPLE_CODES['python']);
+  const [activeFileId, setActiveFileId] = useState(null);
+  const [driveFiles, setDriveFiles] = useState([]);
+  const [loadingDrive, setLoadingDrive] = useState(false);
   const [results, setResults] = useState(null);
   const [optimizeResults, setOptimizeResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('issues');
   const [showDiff, setShowDiff] = useState(false);
   const editorRef = useRef(null);
 
+  useEffect(() => {
+    if (user && localStorage.getItem('googleOAuthToken')) {
+      fetchDriveFiles();
+    } else {
+      setDriveFiles([]);
+      setActiveFileId(null);
+    }
+  }, [user]);
+
+  const fetchDriveFiles = async () => {
+    setLoadingDrive(true);
+    try {
+      const files = await listFiles();
+      setDriveFiles(files);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch Drive files. Token might be expired.');
+    } finally {
+      setLoadingDrive(false);
+    }
+  };
+
+  const handleFileClick = async (file) => {
+    try {
+      setLoading(true);
+      const content = await readFile(file.id);
+      setCode(content);
+      setActiveFileId(file.id);
+      
+      // Guess language by extension
+      let lang = 'python';
+      const name = file.name.toLowerCase();
+      if (name.endsWith('.js')) lang = 'javascript';
+      else if (name.endsWith('.ts')) lang = 'typescript';
+      else if (name.endsWith('.html')) lang = 'html';
+      else if (name.endsWith('.css')) lang = 'css';
+      else if (name.endsWith('.java')) lang = 'java';
+      else if (name.endsWith('.c')) lang = 'c';
+      else if (name.endsWith('.cpp')) lang = 'cpp';
+      else if (name.endsWith('.go')) lang = 'go';
+      else if (name.endsWith('.rs')) lang = 'rust';
+      else if (name.endsWith('.rb')) lang = 'ruby';
+      else if (name.endsWith('.php')) lang = 'php';
+      else if (name.endsWith('.cs')) lang = 'csharp';
+      else if (name.endsWith('.swift')) lang = 'swift';
+      else if (name.endsWith('.kt')) lang = 'kotlin';
+      setLanguage(lang);
+      
+      setResults(null);
+      setOptimizeResults(null);
+    } catch (err) {
+      setError('Failed to load file from Drive');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveToDrive = async () => {
+    if (!user) return onLoginClick();
+    setSaving(true);
+    setError(null);
+    try {
+      if (activeFileId) {
+        await saveFile(activeFileId, code);
+      } else {
+        const extMap = { python: '.py', javascript: '.js', typescript: '.ts', html: '.html', css: '.css', java: '.java', c: '.c', cpp: '.cpp', go: '.go', rust: '.rs', ruby: '.rb', php: '.php', csharp: '.cs', swift: '.swift', kotlin: '.kt' };
+        const ext = extMap[language] || '.txt';
+        const newFile = await createFile(`snippet_${Date.now()}${ext}`, code);
+        setActiveFileId(newFile.id);
+        fetchDriveFiles();
+      }
+    } catch (err) {
+      setError('Failed to save to Google Drive.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleLanguageChange = (e) => {
     const lang = e.target.value;
     setLanguage(lang);
     setCode(SAMPLE_CODES[lang] || '');
+    setActiveFileId(null);
     setResults(null);
     setOptimizeResults(null);
     setError(null);
@@ -508,7 +592,36 @@ const Analyzer = () => {
         </div>
 
         <div className="analyzer__workspace">
-          <div className="analyzer__editor-panel">
+          {/* Drive Sidebar */}
+          {user && (
+            <div className="analyzer__sidebar">
+              <div className="analyzer__sidebar-header">
+                <span className="tech-label">Google Drive</span>
+                <button className="btn-pill btn-ghost" onClick={fetchDriveFiles} style={{ padding: '0.25rem' }}>
+                  ↻
+                </button>
+              </div>
+              <div className="analyzer__sidebar-list">
+                {loadingDrive ? (
+                  <div className="text-muted" style={{ padding: '1rem', fontSize: '0.85rem' }}>Loading files...</div>
+                ) : driveFiles.length === 0 ? (
+                  <div className="text-muted" style={{ padding: '1rem', fontSize: '0.85rem' }}>No files found.</div>
+                ) : (
+                  driveFiles.map(file => (
+                    <button 
+                      key={file.id} 
+                      className={`analyzer__sidebar-item ${activeFileId === file.id ? 'active' : ''}`}
+                      onClick={() => handleFileClick(file)}
+                    >
+                      📄 {file.name}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="analyzer__editor-panel" style={{ flex: 1 }}>
             <div className="analyzer__editor-toolbar">
               <div className="analyzer__editor-dots">
                 <span style={{ background: 'rgba(255,80,80,0.7)' }}></span>
@@ -517,18 +630,28 @@ const Analyzer = () => {
               </div>
               <div className="analyzer__toolbar-center">
                 <span className="analyzer__file-label font-mono">
-                  {LANGUAGES.find(l => l.value === language)?.label || language}
+                  {activeFileId ? driveFiles.find(f => f.id === activeFileId)?.name : (LANGUAGES.find(l => l.value === language)?.label || language)}
                 </span>
               </div>
-              <select
-                className="analyzer__lang-select"
-                value={language}
-                onChange={handleLanguageChange}
-              >
-                {LANGUAGES.map(l => (
-                  <option key={l.value} value={l.value}>{l.label}</option>
-                ))}
-              </select>
+              <div className="analyzer__toolbar-right" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button 
+                  className="btn-pill btn-ghost" 
+                  onClick={handleSaveToDrive} 
+                  disabled={saving}
+                  style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
+                >
+                  {saving ? 'Saving...' : '💾 Save to Drive'}
+                </button>
+                <select
+                  className="analyzer__lang-select"
+                  value={language}
+                  onChange={handleLanguageChange}
+                >
+                  {LANGUAGES.map(l => (
+                    <option key={l.value} value={l.value}>{l.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="analyzer__monaco-wrapper">
@@ -555,7 +678,12 @@ const Analyzer = () => {
                   suggestOnTriggerCharacters: true,
                   tabSize: 4,
                 }}
-                onMount={(editor) => { editorRef.current = editor; }}
+                onMount={(editor, monaco) => { 
+                  editorRef.current = editor; 
+                  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+                    handleSaveToDrive();
+                  });
+                }}
               />
             </div>
 

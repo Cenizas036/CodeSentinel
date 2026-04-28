@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Navbar.css';
 
-const Navbar = () => {
+const Navbar = ({ user, onLoginClick, onLogoutClick }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -46,6 +46,24 @@ const Navbar = () => {
         <div className={`navbar__links ${mobileOpen ? 'navbar__links--open' : ''}`}>
           <a href="#features" className="navbar__link" onClick={(e) => handleNavClick(e, 'features')}>Features</a>
           <a href="#performance" className="navbar__link" onClick={(e) => handleNavClick(e, 'performance')}>Performance</a>
+        </div>
+
+        {/* Auth CTA */}
+        <div className="navbar__auth">
+          {user ? (
+            <div className="navbar__user">
+              <div className="navbar__user-info">
+                <span className="navbar__user-name tech-label">{user.displayName || user.email}</span>
+              </div>
+              <button className="btn-pill btn-ghost navbar__logout-btn" onClick={onLogoutClick}>
+                Log Out
+              </button>
+            </div>
+          ) : (
+            <button className="btn-pill btn-emerald navbar__login-btn" onClick={onLoginClick}>
+              Sign In
+            </button>
+          )}
         </div>
       </div>
     </nav>
