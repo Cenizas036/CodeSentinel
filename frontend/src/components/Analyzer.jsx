@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import Editor from '@monaco-editor/react';
 import './Analyzer.css';
 
 const SAMPLE_CODES = {
@@ -140,19 +141,14 @@ char password[] = "hardcoded_pass123";
 
 void process_input(char *input) {
     char buffer[64];
-    // Buffer overflow vulnerabilities
     gets(input);
     strcpy(buffer, input);
     strcat(buffer, " processed");
     sprintf(buffer, "Result: %s", input);
 
-    // Command injection
     system(input);
-
-    // Format string vulnerability
     printf(input);
 
-    // TODO: Fix memory leak
     char *data = malloc(1024);
     scanf("%s", buffer);
 }
@@ -171,17 +167,12 @@ public:
         strcpy(buffer, input);
         strcat(buffer, "_processed");
 
-        // Unsafe casts
         int* ptr = reinterpret_cast<int*>(buffer);
         const_cast<char*>(input);
 
-        // Manual memory management
         int* data = new int[100];
-
-        // Command injection
         system(input);
 
-        // goto usage
         goto cleanup;
     cleanup:
         delete[] data;
@@ -202,12 +193,10 @@ var apiToken = "go-token-secret-abc"
 func handleRequest(w http.ResponseWriter, r *http.Request) {
     input := r.URL.Query().Get("cmd")
 
-    // Command injection
     cmd := exec.Command("sh", "-c", input)
     output, _ := cmd.Output()
     fmt.Println("Executed:", string(output))
 
-    // No TLS
     http.ListenAndServe(":8080", nil)
 
     if input == "" {
@@ -221,17 +210,14 @@ use std::mem;
 static API_KEY: &str = "rust-secret-key-xyz";
 
 fn process_data(input: &str) -> String {
-    // Unsafe block
     let result = unsafe {
         let ptr = input.as_ptr();
         std::mem::transmute::<*const u8, usize>(ptr)
     };
 
-    // Unwrap usage - panics on error
     let parsed: i32 = input.parse().unwrap();
     let value = Some(42).expect("Should have value");
 
-    // Unnecessary cloning
     let data = input.to_string().clone();
 
     // TODO: Handle errors properly
@@ -242,11 +228,9 @@ fn process_data(input: &str) -> String {
 DB_PASSWORD = "ruby_secret_pass"
 
 def process_input(user_data)
-  # Command injection
   system("echo #{user_data}")
   result = eval(user_data)
 
-  # Dynamic method invocation
   obj.send(user_data.to_sym)
 
   puts "Debug: #{result}"
@@ -256,7 +240,6 @@ def process_input(user_data)
   rescue
   end
 
-  # FIXME: Add input validation
   open(user_data)
   result
 end
@@ -266,29 +249,21 @@ end
 $db_password = "php_admin_pass";
 
 function processInput($input) {
-    // SQL injection
     $result = mysql_query("SELECT * FROM users WHERE id = " . $input);
 
-    // Command injection
     exec("ls " . $input);
     shell_exec($input);
     system("echo " . $input);
 
-    // Weak hashing
     $hash = md5($input);
 
-    // Unsanitized input
     $name = $_GET['name'];
     $data = $_POST['data'];
 
-    // Deserialization
     $obj = unserialize($input);
-
-    // Variable injection
     extract($_POST);
 
     eval($input);
-
     echo $result;
 }
 ?>
@@ -302,13 +277,8 @@ public class UserController {
     private string apiKey = "csharp-secret-key";
 
     public void ProcessInput(string userInput) {
-        // SQL injection
         var cmd = new SqlCommand("SELECT * FROM Users WHERE Name = '" + userInput + "'");
-
-        // Command injection
         Process.Start("cmd", "/c " + userInput);
-
-        // Unsafe deserialization
         var formatter = new BinaryFormatter();
 
         try {
@@ -316,7 +286,6 @@ public class UserController {
         } catch (Exception ex) {
         }
 
-        // TODO: Add input validation
         Console.WriteLine("Processing: " + userInput);
     }
 }
@@ -328,16 +297,13 @@ let apiSecret = "swift-secret-key-123"
 
 class DataManager {
     func processInput(_ input: String) {
-        // Command execution
         let task = Process()
         task.launchPath = "/bin/sh"
         task.arguments = ["-c", input]
 
-        // Unsafe pointer usage
         let ptr = UnsafePointer<Int>.allocate(capacity: 10)
         let mutablePtr = UnsafeMutablePointer<Int>.allocate(capacity: 10)
 
-        // TODO: Fix memory management
         print("Processing: \\(input)")
     }
 }
@@ -349,21 +315,16 @@ class UserService {
     val dbPassword = "kotlin_secret_123"
 
     fun processInput(userInput: String) {
-        // SQL injection
         val stmt = connection.createStatement()
-        stmt.execute("SELECT * FROM users WHERE name = '$userInput'")
+        stmt.execute("SELECT * FROM users WHERE name = '\$userInput'")
 
-        // Command injection
         Runtime.getRuntime().exec(userInput)
-
-        println("Processing: $userInput")
+        println("Processing: \$userInput")
 
         try {
             riskyOperation()
         } catch (e: Exception) {
         }
-
-        // TODO: Validate input
     }
 }
 `,
@@ -372,64 +333,70 @@ class UserService {
 const SEVERITY_CONFIG = {
   critical: { label: 'CRITICAL', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', icon: '🔴' },
   high:     { label: 'HIGH',     color: '#f97316', bg: 'rgba(249,115,22,0.1)', icon: '🟠' },
-  medium:   { label: 'MEDIUM',   color: '#eab308', bg: 'rgba(234,179,8,0.1)', icon: '🟡' },
+  medium:   { label: 'MEDIUM',   color: '#eab308', bg: 'rgba(234,179,8,0.1)',  icon: '🟡' },
   low:      { label: 'LOW',      color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', icon: '🔵' },
   info:     { label: 'INFO',     color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', icon: '⚪' },
 };
 
+const OPT_TYPE_CONFIG = {
+  security:    { label: 'Security', color: '#ef4444', icon: '🛡️' },
+  quality:     { label: 'Quality',  color: '#eab308', icon: '✨' },
+  performance: { label: 'Perf',     color: '#3b82f6', icon: '⚡' },
+};
+
 const LANGUAGES = [
-  { value: 'python', label: 'Python' },
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'typescript', label: 'TypeScript' },
-  { value: 'java', label: 'Java' },
-  { value: 'c', label: 'C' },
-  { value: 'cpp', label: 'C++' },
-  { value: 'go', label: 'Go' },
-  { value: 'rust', label: 'Rust' },
-  { value: 'ruby', label: 'Ruby' },
-  { value: 'php', label: 'PHP' },
-  { value: 'csharp', label: 'C#' },
-  { value: 'swift', label: 'Swift' },
-  { value: 'kotlin', label: 'Kotlin' },
+  { value: 'python', label: 'Python', monaco: 'python' },
+  { value: 'javascript', label: 'JavaScript', monaco: 'javascript' },
+  { value: 'typescript', label: 'TypeScript', monaco: 'typescript' },
+  { value: 'java', label: 'Java', monaco: 'java' },
+  { value: 'c', label: 'C', monaco: 'c' },
+  { value: 'cpp', label: 'C++', monaco: 'cpp' },
+  { value: 'go', label: 'Go', monaco: 'go' },
+  { value: 'rust', label: 'Rust', monaco: 'rust' },
+  { value: 'ruby', label: 'Ruby', monaco: 'ruby' },
+  { value: 'php', label: 'PHP', monaco: 'php' },
+  { value: 'csharp', label: 'C#', monaco: 'csharp' },
+  { value: 'swift', label: 'Swift', monaco: 'swift' },
+  { value: 'kotlin', label: 'Kotlin', monaco: 'kotlin' },
 ];
 
 const Analyzer = () => {
   const [language, setLanguage] = useState('python');
   const [code, setCode] = useState(SAMPLE_CODES['python']);
   const [results, setResults] = useState(null);
+  const [optimizeResults, setOptimizeResults] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('issues');
+  const [showDiff, setShowDiff] = useState(false);
+  const editorRef = useRef(null);
 
   const handleLanguageChange = (e) => {
     const lang = e.target.value;
     setLanguage(lang);
     setCode(SAMPLE_CODES[lang] || '');
     setResults(null);
+    setOptimizeResults(null);
     setError(null);
   };
+
+  const apiBase = window.location.hostname === 'localhost' ? 'http://127.0.0.1:5000' : '';
 
   const handleAnalyze = useCallback(async () => {
     if (!code.trim()) return;
     setLoading(true);
     setError(null);
     setResults(null);
+    setOptimizeResults(null);
 
     try {
-      const apiBase = window.location.hostname === 'localhost'
-        ? 'http://127.0.0.1:5000'
-        : '';
       const res = await fetch(`${apiBase}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, language }),
       });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'API request failed');
-      }
-
+      if (!res.ok) throw new Error((await res.json()).error || 'API failed');
       const data = await res.json();
       setResults(data);
       setActiveTab('issues');
@@ -438,26 +405,57 @@ const Analyzer = () => {
     } finally {
       setLoading(false);
     }
-  }, [code, language]);
+  }, [code, language, apiBase]);
+
+  const handleOptimize = useCallback(async () => {
+    if (!code.trim()) return;
+    setOptimizing(true);
+    setError(null);
+    setOptimizeResults(null);
+
+    try {
+      const res = await fetch(`${apiBase}/api/optimize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, language }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || 'Optimization failed');
+      const data = await res.json();
+      setOptimizeResults(data);
+      setActiveTab('optimizations');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setOptimizing(false);
+    }
+  }, [code, language, apiBase]);
+
+  const applyOptimizedCode = () => {
+    if (optimizeResults?.optimized_code) {
+      setCode(optimizeResults.optimized_code);
+      setOptimizeResults(null);
+      setResults(null);
+    }
+  };
 
   const getGradeColor = (grade) => {
     const map = { A: '#10b981', B: '#22d3ee', C: '#eab308', D: '#f97316', F: '#ef4444' };
     return map[grade] || '#94a3b8';
   };
 
+  const monacoLang = LANGUAGES.find(l => l.value === language)?.monaco || 'python';
+
   return (
     <section className="analyzer" id="analyzer">
       <div className="container">
-        {/* Header */}
         <div className="analyzer__header">
-          <span className="tech-label text-emerald">Live Analysis Engine</span>
-          <h2 className="analyzer__title font-serif">Analyze Your Code</h2>
+          <span className="tech-label text-emerald">Live IDE + Analysis Engine</span>
+          <h2 className="analyzer__title font-serif">CodeSentinel IDE</h2>
           <p className="analyzer__subtitle text-muted">
-            Paste your code below and let CodeSentinel scan for security vulnerabilities, quality issues, and architectural problems in real-time. Supports <strong>13 languages</strong>.
+            Write or paste code, analyze for vulnerabilities, and <strong>optimize with one click</strong>. Supports <strong>13 languages</strong>.
           </p>
         </div>
 
-        {/* Editor + Controls */}
         <div className="analyzer__workspace">
           <div className="analyzer__editor-panel">
             <div className="analyzer__editor-toolbar">
@@ -465,6 +463,11 @@ const Analyzer = () => {
                 <span style={{ background: 'rgba(255,80,80,0.7)' }}></span>
                 <span style={{ background: 'rgba(255,200,50,0.7)' }}></span>
                 <span style={{ background: 'rgba(80,200,120,0.7)' }}></span>
+              </div>
+              <div className="analyzer__toolbar-center">
+                <span className="analyzer__file-label font-mono">
+                  {LANGUAGES.find(l => l.value === language)?.label || language}
+                </span>
               </div>
               <select
                 className="analyzer__lang-select"
@@ -477,41 +480,75 @@ const Analyzer = () => {
               </select>
             </div>
 
-            <textarea
-              className="analyzer__textarea font-mono"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Paste your code here..."
-              spellCheck={false}
-            />
+            <div className="analyzer__monaco-wrapper">
+              <Editor
+                height="420px"
+                language={monacoLang}
+                value={code}
+                onChange={(val) => setCode(val || '')}
+                theme="vs-dark"
+                options={{
+                  fontSize: 13.5,
+                  fontFamily: "'Space Grotesk', 'Fira Code', Consolas, monospace",
+                  minimap: { enabled: true, scale: 1 },
+                  scrollBeyondLastLine: false,
+                  wordWrap: 'off',
+                  automaticLayout: true,
+                  padding: { top: 16, bottom: 16 },
+                  lineNumbers: 'on',
+                  renderLineHighlight: 'line',
+                  bracketPairColorization: { enabled: true },
+                  smoothScrolling: true,
+                  cursorBlinking: 'smooth',
+                  cursorSmoothCaretAnimation: 'on',
+                  suggestOnTriggerCharacters: true,
+                  tabSize: 4,
+                }}
+                onMount={(editor) => { editorRef.current = editor; }}
+              />
+            </div>
 
             <div className="analyzer__editor-footer">
               <span className="tech-label" style={{ color: 'rgba(235,235,235,0.3)' }}>
                 {code.split('\n').length} lines • {LANGUAGES.find(l => l.value === language)?.label || language}
               </span>
-              <button
-                className="btn-pill btn-emerald analyzer__run-btn"
-                onClick={handleAnalyze}
-                disabled={loading || !code.trim()}
-              >
-                {loading ? (
-                  <>
-                    <span className="analyzer__spinner"></span>
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                    </svg>
-                    Analyze Code
-                  </>
-                )}
-              </button>
+              <div className="analyzer__action-btns">
+                <button
+                  className="btn-pill btn-emerald analyzer__run-btn"
+                  onClick={handleAnalyze}
+                  disabled={loading || !code.trim()}
+                >
+                  {loading ? (
+                    <><span className="analyzer__spinner"></span>Scanning...</>
+                  ) : (
+                    <>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                      </svg>
+                      Analyze
+                    </>
+                  )}
+                </button>
+                <button
+                  className="btn-pill btn-optimize analyzer__run-btn"
+                  onClick={handleOptimize}
+                  disabled={optimizing || !code.trim()}
+                >
+                  {optimizing ? (
+                    <><span className="analyzer__spinner analyzer__spinner--opt"></span>Optimizing...</>
+                  ) : (
+                    <>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                      </svg>
+                      Optimize
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Results Panel */}
           {error && (
             <div className="analyzer__error">
               <strong>Error:</strong> {error}
@@ -521,54 +558,83 @@ const Analyzer = () => {
             </div>
           )}
 
-          {results && (
+          {/* Results Panel */}
+          {(results || optimizeResults) && (
             <div className="analyzer__results">
               {/* Summary Cards */}
-              <div className="analyzer__summary-grid">
-                <div className="analyzer__summary-card">
-                  <span className="analyzer__summary-value font-mono" style={{ color: getGradeColor(results.metrics.grade) }}>
-                    {results.metrics.grade}
-                  </span>
-                  <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Grade</span>
+              {results && (
+                <div className="analyzer__summary-grid">
+                  <div className="analyzer__summary-card">
+                    <span className="analyzer__summary-value font-mono" style={{ color: getGradeColor(results.metrics.grade) }}>
+                      {results.metrics.grade}
+                    </span>
+                    <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Grade</span>
+                  </div>
+                  <div className="analyzer__summary-card">
+                    <span className="analyzer__summary-value font-mono text-emerald">
+                      {results.metrics.overall_score}
+                    </span>
+                    <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Score /100</span>
+                  </div>
+                  <div className="analyzer__summary-card">
+                    <span className="analyzer__summary-value font-mono" style={{ color: results.summary.total_issues > 5 ? '#f97316' : '#10b981' }}>
+                      {results.summary.total_issues}
+                    </span>
+                    <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Issues</span>
+                  </div>
+                  <div className="analyzer__summary-card">
+                    <span className="analyzer__summary-value font-mono" style={{ color: results.summary.critical > 0 ? '#ef4444' : '#10b981' }}>
+                      {results.summary.critical}
+                    </span>
+                    <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Critical</span>
+                  </div>
                 </div>
-                <div className="analyzer__summary-card">
-                  <span className="analyzer__summary-value font-mono text-emerald">
-                    {results.metrics.overall_score}
-                  </span>
-                  <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Score /100</span>
+              )}
+
+              {optimizeResults && (
+                <div className="analyzer__optimize-banner">
+                  <div className="analyzer__optimize-banner-text">
+                    <span style={{ fontSize: '1.25rem' }}>⚡</span>
+                    <span><strong>{optimizeResults.total_optimizations}</strong> optimization{optimizeResults.total_optimizations !== 1 ? 's' : ''} found</span>
+                  </div>
+                  {optimizeResults.changed && (
+                    <button className="btn-pill btn-emerald" onClick={applyOptimizedCode}>
+                      ✅ Apply Optimized Code
+                    </button>
+                  )}
                 </div>
-                <div className="analyzer__summary-card">
-                  <span className="analyzer__summary-value font-mono" style={{ color: results.summary.total_issues > 5 ? '#f97316' : '#10b981' }}>
-                    {results.summary.total_issues}
-                  </span>
-                  <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Issues</span>
-                </div>
-                <div className="analyzer__summary-card">
-                  <span className="analyzer__summary-value font-mono" style={{ color: results.summary.critical > 0 ? '#ef4444' : '#10b981' }}>
-                    {results.summary.critical}
-                  </span>
-                  <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Critical</span>
-                </div>
-              </div>
+              )}
 
               {/* Tabs */}
               <div className="analyzer__tabs">
-                <button
-                  className={`analyzer__tab ${activeTab === 'issues' ? 'analyzer__tab--active' : ''}`}
-                  onClick={() => setActiveTab('issues')}
-                >
-                  Issues ({results.summary.total_issues})
-                </button>
-                <button
-                  className={`analyzer__tab ${activeTab === 'metrics' ? 'analyzer__tab--active' : ''}`}
-                  onClick={() => setActiveTab('metrics')}
-                >
-                  Quality Metrics
-                </button>
+                {results && (
+                  <>
+                    <button
+                      className={`analyzer__tab ${activeTab === 'issues' ? 'analyzer__tab--active' : ''}`}
+                      onClick={() => setActiveTab('issues')}
+                    >
+                      🔍 Issues ({results.summary.total_issues})
+                    </button>
+                    <button
+                      className={`analyzer__tab ${activeTab === 'metrics' ? 'analyzer__tab--active' : ''}`}
+                      onClick={() => setActiveTab('metrics')}
+                    >
+                      📊 Metrics
+                    </button>
+                  </>
+                )}
+                {optimizeResults && (
+                  <button
+                    className={`analyzer__tab ${activeTab === 'optimizations' ? 'analyzer__tab--active' : ''}`}
+                    onClick={() => setActiveTab('optimizations')}
+                  >
+                    ⚡ Optimizations ({optimizeResults.total_optimizations})
+                  </button>
+                )}
               </div>
 
               {/* Issues Tab */}
-              {activeTab === 'issues' && (
+              {activeTab === 'issues' && results && (
                 <div className="analyzer__issues-list">
                   {results.issues.length === 0 ? (
                     <div className="analyzer__no-issues">
@@ -597,7 +663,7 @@ const Analyzer = () => {
               )}
 
               {/* Metrics Tab */}
-              {activeTab === 'metrics' && (
+              {activeTab === 'metrics' && results && (
                 <div className="analyzer__metrics-grid">
                   <MetricRow label="Overall Score" value={`${results.metrics.overall_score}/100`} accent />
                   <MetricRow label="Grade" value={results.metrics.grade} accent />
@@ -610,6 +676,45 @@ const Analyzer = () => {
                   <MetricRow label="Comment Ratio" value={`${(results.metrics.comment_ratio * 100).toFixed(1)}%`} />
                   <MetricRow label="Duplication" value={`${results.metrics.duplication_score?.duplication_percentage}%`} />
                   <MetricRow label="Naming Conformance" value={`${(results.metrics.naming_quality?.naming_conformance * 100).toFixed(1)}%`} />
+                </div>
+              )}
+
+              {/* Optimizations Tab */}
+              {activeTab === 'optimizations' && optimizeResults && (
+                <div className="analyzer__optimizations-list">
+                  {optimizeResults.optimizations.length === 0 ? (
+                    <div className="analyzer__no-issues">
+                      <span style={{ fontSize: '2rem' }}>🎉</span>
+                      <p>No optimizations needed — your code is already well-written!</p>
+                    </div>
+                  ) : (
+                    optimizeResults.optimizations.map((opt, i) => {
+                      const cfg = OPT_TYPE_CONFIG[opt.type] || OPT_TYPE_CONFIG.quality;
+                      return (
+                        <div key={i} className="analyzer__optimization">
+                          <div className="analyzer__opt-header">
+                            <span className="analyzer__opt-badge" style={{ color: cfg.color }}>
+                              {cfg.icon} {cfg.label}
+                            </span>
+                            <span className="tech-label" style={{ color: 'rgba(235,235,235,0.3)' }}>
+                              Line {opt.line}
+                            </span>
+                          </div>
+                          <p className="analyzer__opt-reason">{opt.reason}</p>
+                          <div className="analyzer__opt-diff">
+                            <div className="analyzer__opt-diff-line analyzer__opt-diff-line--remove">
+                              <span className="analyzer__opt-diff-marker">−</span>
+                              <code>{opt.original}</code>
+                            </div>
+                            <div className="analyzer__opt-diff-line analyzer__opt-diff-line--add">
+                              <span className="analyzer__opt-diff-marker">+</span>
+                              <code>{opt.optimized}</code>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               )}
             </div>

@@ -17,33 +17,36 @@ An advanced AI-powered code review agent that leverages multiple LLM backends (O
 
 ![CodeSentinel Hero](docs/assets/hero-screenshot.png)
 
-### 🌐 Multi-Language Analyzer — 13 Languages Supported
+### 💻 Full Web-Based IDE & AI Optimizer
+
+The built-in web interface features a powerful **Monaco Editor (VS Code engine)** for a first-class coding experience right in your browser. 
+- **Analyze Code**: Scans your code for vulnerabilities, bugs, and quality metrics instantly.
+- **Optimize Code**: Our AI-driven optimization engine automatically refactors your code for better performance, security, and readability with one click.
+
+![CodeSentinel IDE](docs/assets/ide-screenshot.png)
+![CodeSentinel Optimizations](docs/assets/ide-buttons-screenshot.png)
+
+### 🌐 Multi-Language Support — 13 Languages Supported
 
 CodeSentinel detects and analyzes vulnerabilities across **Python, JavaScript, TypeScript, Java, C, C++, Go, Rust, Ruby, PHP, C#, Swift, and Kotlin**.
-
-![Multi-Language Analyzer](docs/assets/analyzer-js-screenshot.png)
-
-### 🔍 Language-Specific Analysis
 
 Each language has tailored sample code with intentional issues — security vulnerabilities, quality problems, and architectural anti-patterns — so you can see exactly what CodeSentinel catches.
 
 | Language | Key Detections |
 |----------|---------------|
-| Python | `eval()`, hardcoded secrets, bare `except`, deep nesting, God classes |
-| JavaScript | `eval()`, `innerHTML` XSS, `var` usage, loose `==`, `console.log` |
-| TypeScript | `as any` casts, XSS, empty catches |
-| Java | SQL injection, `Runtime.exec()`, deserialization, broad `catch` |
-| C | Buffer overflows (`gets`, `strcpy`, `sprintf`), `system()`, format strings |
-| C++ | Unsafe casts, manual `new`, `goto`, buffer overflows |
-| Go | `exec.Command`, `panic()`, no TLS, `fmt.Print` in production |
-| Rust | `unsafe` blocks, `.unwrap()`, `.clone()`, `transmute` |
-| Ruby | `eval`, `system`, `send`, `open` injection |
-| PHP | `eval`, `mysql_query`, `md5`, `extract`, `unserialize` |
-| C# | `SqlCommand` injection, `Process.Start`, `BinaryFormatter` |
-| Swift | `Process`, `UnsafePointer`, `UnsafeMutablePointer` |
-| Kotlin | SQL injection, `Runtime.exec()`, empty catches |
-
-![Java Analyzer](docs/assets/analyzer-java-screenshot.png)
+| Python | \`eval()\`, hardcoded secrets, bare \`except\`, deep nesting, God classes |
+| JavaScript | \`eval()\`, \`innerHTML\` XSS, \`var\` usage, loose \`==\`, \`console.log\` |
+| TypeScript | \`as any\` casts, XSS, empty catches |
+| Java | SQL injection, \`Runtime.exec()\`, deserialization, broad \`catch\` |
+| C | Buffer overflows (\`gets\`, \`strcpy\`, \`sprintf\`), \`system()\`, format strings |
+| C++ | Unsafe casts, manual \`new\`, \`goto\`, buffer overflows |
+| Go | \`exec.Command\`, \`panic()\`, no TLS, \`fmt.Print\` in production |
+| Rust | \`unsafe\` blocks, \`.unwrap()\`, \`.clone()\`, \`transmute\` |
+| Ruby | \`eval\`, \`system\`, \`send\`, \`open\` injection |
+| PHP | \`eval\`, \`mysql_query\`, \`md5\`, \`extract\`, \`unserialize\` |
+| C# | \`SqlCommand\` injection, \`Process.Start\`, \`BinaryFormatter\` |
+| Swift | \`Process\`, \`UnsafePointer\`, \`UnsafeMutablePointer\` |
+| Kotlin | SQL injection, \`Runtime.exec()\`, empty catches |
 
 ---
 
