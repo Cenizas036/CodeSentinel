@@ -19,12 +19,11 @@ const Hero = () => {
 
           <h1 className="hero__title font-serif tracking-tighter">
             The Future of<br />
-            Digital <em className="hero__italic text-emerald">Elegance</em>
+            Secure <em className="hero__italic text-emerald">Coding</em>
           </h1>
 
           <p className="hero__subtitle">
-            A classical-tech hybrid experience. Blending the timeless beauty
-            of editorial typography with the high-performance utility of modern interfaces.
+            AI-Driven Code Analysis & Optimization. Blending enterprise-grade security scanning with a lightning-fast, web-based IDE.
           </p>
 
           <div className="hero__actions">
