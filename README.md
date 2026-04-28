@@ -4,6 +4,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![LLM](https://img.shields.io/badge/LLM-Multi--Model-purple)
 ![Status](https://img.shields.io/badge/Status-Production--Ready-brightgreen)
+![Languages](https://img.shields.io/badge/Languages-13-teal)
 [![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?logo=vercel)](https://codesentinel-ten.vercel.app/)
 
 > **Fusion: LLM + DevOps + Static Analysis**
@@ -13,8 +14,36 @@
 An advanced AI-powered code review agent that leverages multiple LLM backends (OpenAI GPT-4, Anthropic Claude, local models via Ollama) to perform deep code analysis including security vulnerability detection, code quality scoring, architectural review, and automated fix generation.
 
 ### 📸 Interface
+
 ![CodeSentinel Hero](docs/assets/hero-screenshot.png)
-![CodeSentinel Analyzer](docs/assets/analyzer-screenshot.png)
+
+### 🌐 Multi-Language Analyzer — 13 Languages Supported
+
+CodeSentinel detects and analyzes vulnerabilities across **Python, JavaScript, TypeScript, Java, C, C++, Go, Rust, Ruby, PHP, C#, Swift, and Kotlin**.
+
+![Multi-Language Analyzer](docs/assets/analyzer-js-screenshot.png)
+
+### 🔍 Language-Specific Analysis
+
+Each language has tailored sample code with intentional issues — security vulnerabilities, quality problems, and architectural anti-patterns — so you can see exactly what CodeSentinel catches.
+
+| Language | Key Detections |
+|----------|---------------|
+| Python | `eval()`, hardcoded secrets, bare `except`, deep nesting, God classes |
+| JavaScript | `eval()`, `innerHTML` XSS, `var` usage, loose `==`, `console.log` |
+| TypeScript | `as any` casts, XSS, empty catches |
+| Java | SQL injection, `Runtime.exec()`, deserialization, broad `catch` |
+| C | Buffer overflows (`gets`, `strcpy`, `sprintf`), `system()`, format strings |
+| C++ | Unsafe casts, manual `new`, `goto`, buffer overflows |
+| Go | `exec.Command`, `panic()`, no TLS, `fmt.Print` in production |
+| Rust | `unsafe` blocks, `.unwrap()`, `.clone()`, `transmute` |
+| Ruby | `eval`, `system`, `send`, `open` injection |
+| PHP | `eval`, `mysql_query`, `md5`, `extract`, `unserialize` |
+| C# | `SqlCommand` injection, `Process.Start`, `BinaryFormatter` |
+| Swift | `Process`, `UnsafePointer`, `UnsafeMutablePointer` |
+| Kotlin | SQL injection, `Runtime.exec()`, empty catches |
+
+![Java Analyzer](docs/assets/analyzer-java-screenshot.png)
 
 ---
 
@@ -40,6 +69,7 @@ An advanced AI-powered code review agent that leverages multiple LLM backends (O
 
 ## ✨ Features
 
+- **Multi-Language Support** — 13 languages: Python, JS, TS, Java, C, C++, Go, Rust, Ruby, PHP, C#, Swift, Kotlin
 - **Multi-Model LLM Support** — GPT-4o, Claude 3.5, Llama 3 via Ollama
 - **AST-Based Analysis** — Deep understanding of code structure using Python AST, Tree-sitter
 - **Security Scanning** — OWASP Top 10, CWE detection, dependency vulnerability checks
@@ -53,7 +83,7 @@ An advanced AI-powered code review agent that leverages multiple LLM backends (O
 
 ```bash
 # Clone
-git clone https://github.com/yourusername/CodeSentinel.git
+git clone https://github.com/Cenizas036/CodeSentinel.git
 cd CodeSentinel
 
 # Install
