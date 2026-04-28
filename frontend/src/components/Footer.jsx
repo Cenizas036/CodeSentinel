@@ -27,7 +27,6 @@ const Footer = () => {
               <h4 className="footer__col-title tech-label">Product</h4>
               <a href="#features" className="footer__link">Features</a>
               <a href="#performance" className="footer__link">Performance</a>
-              <a href="#cta" className="footer__link">Get Access</a>
             </div>
             <div className="footer__col">
               <h4 className="footer__col-title tech-label">Company</h4>

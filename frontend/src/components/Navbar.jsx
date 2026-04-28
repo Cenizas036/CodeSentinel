@@ -46,17 +46,6 @@ const Navbar = () => {
         <div className={`navbar__links ${mobileOpen ? 'navbar__links--open' : ''}`}>
           <a href="#features" className="navbar__link" onClick={(e) => handleNavClick(e, 'features')}>Features</a>
           <a href="#performance" className="navbar__link" onClick={(e) => handleNavClick(e, 'performance')}>Performance</a>
-          <a href="#cta" className="navbar__link" onClick={(e) => handleNavClick(e, 'cta')}>Get Access</a>
-        </div>
-
-        {/* CTA */}
-        <div className="navbar__cta">
-          <button
-            className="btn-pill btn-emerald navbar__cta-btn"
-            onClick={(e) => handleNavClick(e, 'cta')}
-          >
-            Get Started
-          </button>
         </div>
       </div>
     </nav>
