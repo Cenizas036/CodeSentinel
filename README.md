@@ -9,6 +9,10 @@
 
 An advanced AI-powered code review agent that leverages multiple LLM backends (OpenAI GPT-4, Anthropic Claude, local models via Ollama) to perform deep code analysis including security vulnerability detection, code quality scoring, architectural review, and automated fix generation.
 
+### 📸 Interface
+![CodeSentinel Hero](docs/assets/hero-screenshot.png)
+![CodeSentinel Analyzer](docs/assets/analyzer-screenshot.png)
+
 ---
 
 ## 🏗️ Architecture
