@@ -4,8 +4,11 @@
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![LLM](https://img.shields.io/badge/LLM-Multi--Model-purple)
 ![Status](https://img.shields.io/badge/Status-Production--Ready-brightgreen)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployed-black?logo=vercel)](https://codesentinel-ten.vercel.app/)
 
 > **Fusion: LLM + DevOps + Static Analysis**
+> 
+> 🚀 **[Live Demo Hosted on Vercel](https://codesentinel-ten.vercel.app/)**
 
 An advanced AI-powered code review agent that leverages multiple LLM backends (OpenAI GPT-4, Anthropic Claude, local models via Ollama) to perform deep code analysis including security vulnerability detection, code quality scoring, architectural review, and automated fix generation.
 
