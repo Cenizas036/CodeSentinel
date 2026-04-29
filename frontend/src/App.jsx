@@ -48,7 +48,7 @@ function App() {
             <BenchmarkTable />
           </>
         ) : (
-          <section style={{
+          <section id="analyzer" style={{
             padding: '6rem 0 8rem',
             textAlign: 'center',
             position: 'relative',

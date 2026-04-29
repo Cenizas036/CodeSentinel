@@ -516,7 +516,7 @@ const Analyzer = ({ user, onLoginClick }) => {
     setError(null);
   };
 
-  const apiBase = window.location.hostname === 'localhost' ? 'http://127.0.0.1:5000' : '';
+  const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://127.0.0.1:5000' : '';
 
   const handleAnalyze = useCallback(async () => {
     if (!code.trim()) return;
@@ -621,283 +621,287 @@ const Analyzer = ({ user, onLoginClick }) => {
             </div>
           )}
 
-          <div className="analyzer__editor-panel" style={{ flex: 1 }}>
-            <div className="analyzer__editor-toolbar">
-              <div className="analyzer__editor-dots">
-                <span style={{ background: 'rgba(255,80,80,0.7)' }}></span>
-                <span style={{ background: 'rgba(255,200,50,0.7)' }}></span>
-                <span style={{ background: 'rgba(80,200,120,0.7)' }}></span>
-              </div>
-              <div className="analyzer__toolbar-center">
-                <span className="analyzer__file-label font-mono">
-                  {activeFileId ? driveFiles.find(f => f.id === activeFileId)?.name : (LANGUAGES.find(l => l.value === language)?.label || language)}
-                </span>
-              </div>
-              <div className="analyzer__toolbar-right" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <button 
-                  className="btn-pill btn-ghost" 
-                  onClick={handleSaveToDrive} 
-                  disabled={saving}
-                  style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
-                >
-                  {saving ? 'Saving...' : '💾 Save to Drive'}
-                </button>
-                <select
-                  className="analyzer__lang-select"
-                  value={language}
-                  onChange={handleLanguageChange}
-                >
-                  {LANGUAGES.map(l => (
-                    <option key={l.value} value={l.value}>{l.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="analyzer__monaco-wrapper">
-              <Editor
-                height="420px"
-                language={monacoLang}
-                value={code}
-                onChange={(val) => setCode(val || '')}
-                theme="vs-dark"
-                options={{
-                  fontSize: 13.5,
-                  fontFamily: "'Space Grotesk', 'Fira Code', Consolas, monospace",
-                  minimap: { enabled: true, scale: 1 },
-                  scrollBeyondLastLine: false,
-                  wordWrap: 'off',
-                  automaticLayout: true,
-                  padding: { top: 16, bottom: 16 },
-                  lineNumbers: 'on',
-                  renderLineHighlight: 'line',
-                  bracketPairColorization: { enabled: true },
-                  smoothScrolling: true,
-                  cursorBlinking: 'smooth',
-                  cursorSmoothCaretAnimation: 'on',
-                  suggestOnTriggerCharacters: true,
-                  tabSize: 4,
-                }}
-                onMount={(editor, monaco) => { 
-                  editorRef.current = editor; 
-                  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-                    handleSaveToDrive();
-                  });
-                }}
-              />
-            </div>
-
-            <div className="analyzer__editor-footer">
-              <span className="tech-label" style={{ color: 'rgba(235,235,235,0.3)' }}>
-                {code.split('\n').length} lines • {LANGUAGES.find(l => l.value === language)?.label || language}
-              </span>
-              <div className="analyzer__action-btns">
-                <button
-                  className="btn-pill btn-emerald analyzer__run-btn"
-                  onClick={handleAnalyze}
-                  disabled={loading || !code.trim()}
-                >
-                  {loading ? (
-                    <><span className="analyzer__spinner"></span>Scanning...</>
-                  ) : (
-                    <>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                      </svg>
-                      Analyze
-                    </>
-                  )}
-                </button>
-                <button
-                  className="btn-pill btn-optimize analyzer__run-btn"
-                  onClick={handleOptimize}
-                  disabled={optimizing || !code.trim()}
-                >
-                  {optimizing ? (
-                    <><span className="analyzer__spinner analyzer__spinner--opt"></span>Optimizing...</>
-                  ) : (
-                    <>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                      </svg>
-                      Optimize
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {error && (
-            <div className="analyzer__error">
-              <strong>Error:</strong> {error}
-              <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', opacity: 0.6 }}>
-                Make sure the API server is running: <code>python api.py</code>
-              </p>
-            </div>
-          )}
-
-          {/* Results Panel */}
-          {(results || optimizeResults) && (
-            <div className="analyzer__results">
-              {/* Summary Cards */}
-              {results && (
-                <div className="analyzer__summary-grid">
-                  <div className="analyzer__summary-card">
-                    <span className="analyzer__summary-value font-mono" style={{ color: getGradeColor(results.metrics.grade) }}>
-                      {results.metrics.grade}
-                    </span>
-                    <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Grade</span>
-                  </div>
-                  <div className="analyzer__summary-card">
-                    <span className="analyzer__summary-value font-mono text-emerald">
-                      {results.metrics.overall_score}
-                    </span>
-                    <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Score /100</span>
-                  </div>
-                  <div className="analyzer__summary-card">
-                    <span className="analyzer__summary-value font-mono" style={{ color: results.summary.total_issues > 5 ? '#f97316' : '#10b981' }}>
-                      {results.summary.total_issues}
-                    </span>
-                    <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Issues</span>
-                  </div>
-                  <div className="analyzer__summary-card">
-                    <span className="analyzer__summary-value font-mono" style={{ color: results.summary.critical > 0 ? '#ef4444' : '#10b981' }}>
-                      {results.summary.critical}
-                    </span>
-                    <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Critical</span>
-                  </div>
+          <div className="analyzer__main-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
+            <div className="analyzer__editor-panel">
+              <div className="analyzer__editor-toolbar">
+                <div className="analyzer__editor-dots">
+                  <span style={{ background: 'rgba(255,80,80,0.7)' }}></span>
+                  <span style={{ background: 'rgba(255,200,50,0.7)' }}></span>
+                  <span style={{ background: 'rgba(80,200,120,0.7)' }}></span>
                 </div>
-              )}
-
-              {optimizeResults && (
-                <div className="analyzer__optimize-banner">
-                  <div className="analyzer__optimize-banner-text">
-                    <span style={{ fontSize: '1.25rem' }}>⚡</span>
-                    <span><strong>{optimizeResults.total_optimizations}</strong> optimization{optimizeResults.total_optimizations !== 1 ? 's' : ''} found</span>
-                  </div>
-                  {optimizeResults.changed && (
-                    <button className="btn-pill btn-emerald" onClick={applyOptimizedCode}>
-                      ✅ Apply Optimized Code
-                    </button>
-                  )}
+                <div className="analyzer__toolbar-center">
+                  <span className="analyzer__file-label font-mono">
+                    {activeFileId ? driveFiles.find(f => f.id === activeFileId)?.name : (LANGUAGES.find(l => l.value === language)?.label || language)}
+                  </span>
                 </div>
-              )}
-
-              {/* Tabs */}
-              <div className="analyzer__tabs">
-                {results && (
-                  <>
-                    <button
-                      className={`analyzer__tab ${activeTab === 'issues' ? 'analyzer__tab--active' : ''}`}
-                      onClick={() => setActiveTab('issues')}
-                    >
-                      🔍 Issues ({results.summary.total_issues})
-                    </button>
-                    <button
-                      className={`analyzer__tab ${activeTab === 'metrics' ? 'analyzer__tab--active' : ''}`}
-                      onClick={() => setActiveTab('metrics')}
-                    >
-                      📊 Metrics
-                    </button>
-                  </>
-                )}
-                {optimizeResults && (
-                  <button
-                    className={`analyzer__tab ${activeTab === 'optimizations' ? 'analyzer__tab--active' : ''}`}
-                    onClick={() => setActiveTab('optimizations')}
+                <div className="analyzer__toolbar-right" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button 
+                    className="btn-pill btn-ghost" 
+                    onClick={handleSaveToDrive} 
+                    disabled={saving}
+                    style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}
                   >
-                    ⚡ Optimizations ({optimizeResults.total_optimizations})
+                    {saving ? 'Saving...' : '💾 Save to Drive'}
                   </button>
-                )}
+                  <select
+                    className="analyzer__lang-select"
+                    value={language}
+                    onChange={handleLanguageChange}
+                  >
+                    {LANGUAGES.map(l => (
+                      <option key={l.value} value={l.value}>{l.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              {/* Issues Tab */}
-              {activeTab === 'issues' && results && (
-                <div className="analyzer__issues-list">
-                  {results.issues.length === 0 ? (
-                    <div className="analyzer__no-issues">
-                      <span style={{ fontSize: '2rem' }}>✅</span>
-                      <p>No issues found. Your code looks clean!</p>
-                    </div>
-                  ) : (
-                    results.issues.map((issue, i) => {
-                      const sev = SEVERITY_CONFIG[issue.severity] || SEVERITY_CONFIG.info;
-                      return (
-                        <div key={i} className="analyzer__issue" style={{ borderLeftColor: sev.color }}>
-                          <div className="analyzer__issue-header">
-                            <span className="analyzer__issue-badge" style={{ background: sev.bg, color: sev.color }}>
-                              {sev.icon} {sev.label}
-                            </span>
-                            <span className="tech-label" style={{ color: 'rgba(235,235,235,0.3)' }}>
-                              Line {issue.line} • {issue.category}
-                            </span>
-                          </div>
-                          <p className="analyzer__issue-message">{issue.message}</p>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              )}
+              <div className="analyzer__monaco-wrapper" style={{ height: '420px', minHeight: '200px', resize: 'vertical', overflow: 'hidden' }}>
+                <Editor
+                  height="100%"
+                  language={monacoLang}
+                  value={code}
+                  onChange={(val) => setCode(val || '')}
+                  theme="vs-dark"
+                  options={{
+                    fontSize: 13.5,
+                    fontFamily: "'Space Grotesk', 'Fira Code', Consolas, monospace",
+                    minimap: { enabled: true, scale: 1 },
+                    scrollBeyondLastLine: false,
+                    wordWrap: 'off',
+                    automaticLayout: true,
+                    padding: { top: 16, bottom: 16 },
+                    lineNumbers: 'on',
+                    renderLineHighlight: 'line',
+                    bracketPairColorization: { enabled: true },
+                    smoothScrolling: true,
+                    cursorBlinking: 'smooth',
+                    cursorSmoothCaretAnimation: 'on',
+                    suggestOnTriggerCharacters: true,
+                    tabSize: 4,
+                  }}
+                  onMount={(editor, monaco) => { 
+                    editorRef.current = editor; 
+                    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+                      handleSaveToDrive();
+                    });
+                  }}
+                />
+              </div>
 
-              {/* Metrics Tab */}
-              {activeTab === 'metrics' && results && (
-                <div className="analyzer__metrics-grid">
-                  <MetricRow label="Overall Score" value={`${results.metrics.overall_score}/100`} accent />
-                  <MetricRow label="Grade" value={results.metrics.grade} accent />
-                  <MetricRow label="Functions" value={results.metrics.function_count} />
-                  <MetricRow label="Classes" value={results.metrics.class_count} />
-                  <MetricRow label="Avg Complexity" value={results.metrics.avg_cyclomatic_complexity} />
-                  <MetricRow label="Maintainability" value={results.metrics.maintainability_index} />
-                  <MetricRow label="Lines of Code" value={results.metrics.lines_of_code?.code} />
-                  <MetricRow label="Comments" value={results.metrics.lines_of_code?.comments} />
-                  <MetricRow label="Comment Ratio" value={`${(results.metrics.comment_ratio * 100).toFixed(1)}%`} />
-                  <MetricRow label="Duplication" value={`${results.metrics.duplication_score?.duplication_percentage}%`} />
-                  <MetricRow label="Naming Conformance" value={`${(results.metrics.naming_quality?.naming_conformance * 100).toFixed(1)}%`} />
+              <div className="analyzer__editor-footer">
+                <span className="tech-label" style={{ color: 'rgba(235,235,235,0.3)' }}>
+                  {code.split('\n').length} lines • {LANGUAGES.find(l => l.value === language)?.label || language}
+                </span>
+                <div className="analyzer__action-btns">
+                  <button
+                    className="btn-pill btn-emerald analyzer__run-btn"
+                    onClick={handleAnalyze}
+                    disabled={loading || !code.trim()}
+                  >
+                    {loading ? (
+                      <><span className="analyzer__spinner"></span>Scanning...</>
+                    ) : (
+                      <>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        Analyze
+                      </>
+                    )}
+                  </button>
+                  <button
+                    className="btn-pill btn-optimize analyzer__run-btn"
+                    onClick={handleOptimize}
+                    disabled={optimizing || !code.trim()}
+                  >
+                    {optimizing ? (
+                      <><span className="analyzer__spinner analyzer__spinner--opt"></span>Optimizing...</>
+                    ) : (
+                      <>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        Optimize
+                      </>
+                    )}
+                  </button>
                 </div>
-              )}
-
-              {/* Optimizations Tab */}
-              {activeTab === 'optimizations' && optimizeResults && (
-                <div className="analyzer__optimizations-list">
-                  {optimizeResults.optimizations.length === 0 ? (
-                    <div className="analyzer__no-issues">
-                      <span style={{ fontSize: '2rem' }}>🎉</span>
-                      <p>No optimizations needed — your code is already well-written!</p>
-                    </div>
-                  ) : (
-                    optimizeResults.optimizations.map((opt, i) => {
-                      const cfg = OPT_TYPE_CONFIG[opt.type] || OPT_TYPE_CONFIG.quality;
-                      return (
-                        <div key={i} className="analyzer__optimization">
-                          <div className="analyzer__opt-header">
-                            <span className="analyzer__opt-badge" style={{ color: cfg.color }}>
-                              {cfg.icon} {cfg.label}
-                            </span>
-                            <span className="tech-label" style={{ color: 'rgba(235,235,235,0.3)' }}>
-                              Line {opt.line}
-                            </span>
-                          </div>
-                          <p className="analyzer__opt-reason">{opt.reason}</p>
-                          <div className="analyzer__opt-diff">
-                            <div className="analyzer__opt-diff-line analyzer__opt-diff-line--remove">
-                              <span className="analyzer__opt-diff-marker">−</span>
-                              <code>{opt.original}</code>
-                            </div>
-                            <div className="analyzer__opt-diff-line analyzer__opt-diff-line--add">
-                              <span className="analyzer__opt-diff-marker">+</span>
-                              <code>{opt.optimized}</code>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              )}
+              </div>
             </div>
-          )}
+
+            {error && (
+              <div className="analyzer__error">
+                <strong>Error:</strong> {error}
+                {!error.includes('Drive') && (
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', opacity: 0.6 }}>
+                    Make sure the API server is running: <code>python api.py</code>
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Results Panel */}
+            {(results || optimizeResults) && (
+              <div className="analyzer__results">
+                {/* Summary Cards */}
+                {results && (
+                  <div className="analyzer__summary-grid">
+                    <div className="analyzer__summary-card">
+                      <span className="analyzer__summary-value font-mono" style={{ color: getGradeColor(results.metrics.grade) }}>
+                        {results.metrics.grade}
+                      </span>
+                      <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Grade</span>
+                    </div>
+                    <div className="analyzer__summary-card">
+                      <span className="analyzer__summary-value font-mono text-emerald">
+                        {results.metrics.overall_score}
+                      </span>
+                      <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Score /100</span>
+                    </div>
+                    <div className="analyzer__summary-card">
+                      <span className="analyzer__summary-value font-mono" style={{ color: results.summary.total_issues > 5 ? '#f97316' : '#10b981' }}>
+                        {results.summary.total_issues}
+                      </span>
+                      <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Issues</span>
+                    </div>
+                    <div className="analyzer__summary-card">
+                      <span className="analyzer__summary-value font-mono" style={{ color: results.summary.critical > 0 ? '#ef4444' : '#10b981' }}>
+                        {results.summary.critical}
+                      </span>
+                      <span className="tech-label" style={{ color: 'rgba(235,235,235,0.4)' }}>Critical</span>
+                    </div>
+                  </div>
+                )}
+
+                {optimizeResults && (
+                  <div className="analyzer__optimize-banner">
+                    <div className="analyzer__optimize-banner-text">
+                      <span style={{ fontSize: '1.25rem' }}>⚡</span>
+                      <span><strong>{optimizeResults.total_optimizations}</strong> optimization{optimizeResults.total_optimizations !== 1 ? 's' : ''} found</span>
+                    </div>
+                    {optimizeResults.changed && (
+                      <button className="btn-pill btn-emerald" onClick={applyOptimizedCode}>
+                        ✅ Apply Optimized Code
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Tabs */}
+                <div className="analyzer__tabs">
+                  {results && (
+                    <>
+                      <button
+                        className={`analyzer__tab ${activeTab === 'issues' ? 'analyzer__tab--active' : ''}`}
+                        onClick={() => setActiveTab('issues')}
+                      >
+                        🔍 Issues ({results.summary.total_issues})
+                      </button>
+                      <button
+                        className={`analyzer__tab ${activeTab === 'metrics' ? 'analyzer__tab--active' : ''}`}
+                        onClick={() => setActiveTab('metrics')}
+                      >
+                        📊 Metrics
+                      </button>
+                    </>
+                  )}
+                  {optimizeResults && (
+                    <button
+                      className={`analyzer__tab ${activeTab === 'optimizations' ? 'analyzer__tab--active' : ''}`}
+                      onClick={() => setActiveTab('optimizations')}
+                    >
+                      ⚡ Optimizations ({optimizeResults.total_optimizations})
+                    </button>
+                  )}
+                </div>
+
+                {/* Issues Tab */}
+                {activeTab === 'issues' && results && (
+                  <div className="analyzer__issues-list">
+                    {results.issues.length === 0 ? (
+                      <div className="analyzer__no-issues">
+                        <span style={{ fontSize: '2rem' }}>✅</span>
+                        <p>No issues found. Your code looks clean!</p>
+                      </div>
+                    ) : (
+                      results.issues.map((issue, i) => {
+                        const sev = SEVERITY_CONFIG[issue.severity] || SEVERITY_CONFIG.info;
+                        return (
+                          <div key={i} className="analyzer__issue" style={{ borderLeftColor: sev.color }}>
+                            <div className="analyzer__issue-header">
+                              <span className="analyzer__issue-badge" style={{ background: sev.bg, color: sev.color }}>
+                                {sev.icon} {sev.label}
+                              </span>
+                              <span className="tech-label" style={{ color: 'rgba(235,235,235,0.3)' }}>
+                                Line {issue.line} • {issue.category}
+                              </span>
+                            </div>
+                            <p className="analyzer__issue-message">{issue.message}</p>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+
+                {/* Metrics Tab */}
+                {activeTab === 'metrics' && results && (
+                  <div className="analyzer__metrics-grid">
+                    <MetricRow label="Overall Score" value={`${results.metrics.overall_score}/100`} accent />
+                    <MetricRow label="Grade" value={results.metrics.grade} accent />
+                    <MetricRow label="Functions" value={results.metrics.function_count} />
+                    <MetricRow label="Classes" value={results.metrics.class_count} />
+                    <MetricRow label="Avg Complexity" value={results.metrics.avg_cyclomatic_complexity} />
+                    <MetricRow label="Maintainability" value={results.metrics.maintainability_index} />
+                    <MetricRow label="Lines of Code" value={results.metrics.lines_of_code?.code} />
+                    <MetricRow label="Comments" value={results.metrics.lines_of_code?.comments} />
+                    <MetricRow label="Comment Ratio" value={`${(results.metrics.comment_ratio * 100).toFixed(1)}%`} />
+                    <MetricRow label="Duplication" value={`${results.metrics.duplication_score?.duplication_percentage}%`} />
+                    <MetricRow label="Naming Conformance" value={`${(results.metrics.naming_quality?.naming_conformance * 100).toFixed(1)}%`} />
+                  </div>
+                )}
+
+                {/* Optimizations Tab */}
+                {activeTab === 'optimizations' && optimizeResults && (
+                  <div className="analyzer__optimizations-list">
+                    {optimizeResults.optimizations.length === 0 ? (
+                      <div className="analyzer__no-issues">
+                        <span style={{ fontSize: '2rem' }}>🎉</span>
+                        <p>No optimizations needed — your code is already well-written!</p>
+                      </div>
+                    ) : (
+                      optimizeResults.optimizations.map((opt, i) => {
+                        const cfg = OPT_TYPE_CONFIG[opt.type] || OPT_TYPE_CONFIG.quality;
+                        return (
+                          <div key={i} className="analyzer__optimization">
+                            <div className="analyzer__opt-header">
+                              <span className="analyzer__opt-badge" style={{ color: cfg.color }}>
+                                {cfg.icon} {cfg.label}
+                              </span>
+                              <span className="tech-label" style={{ color: 'rgba(235,235,235,0.3)' }}>
+                                Line {opt.line}
+                              </span>
+                            </div>
+                            <p className="analyzer__opt-reason">{opt.reason}</p>
+                            <div className="analyzer__opt-diff">
+                              <div className="analyzer__opt-diff-line analyzer__opt-diff-line--remove">
+                                <span className="analyzer__opt-diff-marker">−</span>
+                                <code>{opt.original}</code>
+                              </div>
+                              <div className="analyzer__opt-diff-line analyzer__opt-diff-line--add">
+                                <span className="analyzer__opt-diff-marker">+</span>
+                                <code>{opt.optimized}</code>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
