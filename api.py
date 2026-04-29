@@ -8,12 +8,12 @@ from flask_cors import CORS
 import sys
 import os
 
-# Add parent dir to path so we can import src modules
-sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
+# Add api dir to path so we can import modules
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "api"))
 
-from api.analyzers.ast_analyzer import ASTAnalyzer
-from api.analyzers.quality_scorer import QualityScorer
-from api.analyzers.code_optimizer import CodeOptimizer
+from analyzers.ast_analyzer import ASTAnalyzer
+from analyzers.quality_scorer import QualityScorer
+from analyzers.code_optimizer import CodeOptimizer
 
 app = Flask(__name__)
 CORS(app)  # Allow frontend to call API

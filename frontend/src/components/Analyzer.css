@@ -274,6 +274,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  max-height: 600px;
+  min-height: 150px;
+  overflow-y: auto;
+  resize: vertical;
+  padding-right: 0.5rem;
 }
 
 .analyzer__issue {
@@ -367,6 +372,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  max-height: 600px;
+  min-height: 150px;
+  overflow-y: auto;
+  resize: vertical;
+  padding-right: 0.5rem;
 }
 
 .analyzer__optimization {
